@@ -49,6 +49,14 @@ typedef struct Node {
     int value; // value for ND_NUM
 } Node;
 
+/* Vector */
+
+typedef struct {
+    void **data;
+    int capacity;
+    int len;
+} Vector;
+
 /*
  * Global variables
  */
@@ -62,6 +70,27 @@ int pos = 0;
 /*
  * Functions
  */
+
+/* Utilities */
+
+Vector *new_vector() {
+    Vector *vec = malloc(sizeof(Vector));
+
+    vec->data = malloc(sizeof(void *) * 16);
+    vec->capacity = 16;
+    vec->len = 0;
+
+    return vec;
+}
+
+void vec_push(Vector *vec, void *elem) {
+    if (vec->capacity == vec->len) {
+        vec->capacity *= 2;
+        vec->data = realloc(vec->data, sizeof(void *) * vec->capacity);
+    }
+    vec->data[vec->len] = elem;
+    vec->len++;
+}
 
 /* Prototype declarations */
 
