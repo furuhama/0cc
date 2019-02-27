@@ -109,7 +109,7 @@ _main:
 
 `rax`, `rsi`, `rdi`, `rsp`, `rbp`: 64-bit register names
 
--
+---
 
 If a register name has `r` prefix, it means 64-bit register.
 On the other hand, if one has `e` prefix, it means 32-bit register.
