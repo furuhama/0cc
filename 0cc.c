@@ -254,10 +254,47 @@ void generate(Node *node) {
     printf("    push rax\n");
 }
 
+/* Test code */
+
+void expect(int line, int expected, int actual) {
+    if (expected == actual) {
+        return;
+    }
+
+    fprintf(stderr, "%d: %d expected, but got %d\n", line, expected, actual);
+
+    exit(1);
+}
+
+void runtest() {
+    Vector *vec = new_vector();
+
+    expect(__LINE__, 0, vec->len);
+
+    for (int i = 0; i < 100; i++) {
+        vec_push(vec, (void *)i);
+    }
+
+    expect(__LINE__, 100, vec->len);
+    expect(__LINE__, 0, (int)vec->data[0]);
+    expect(__LINE__, 50, (int)vec->data[50]);
+    expect(__LINE__, 99, (int)vec->data[99]);
+
+    printf("OK\n");
+}
+
+/* main */
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Wrong number of arguments.\n");
         return 1;
+    }
+
+    if (strcmp(argv[1], "-test") == 0) {
+        runtest();
+
+        return 0;
     }
 
     tokenize(argv[1]);
