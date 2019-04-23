@@ -58,16 +58,6 @@ typedef struct {
 } Vector;
 
 /*
- * Global variables
- */
-
-// Take an array for tokens (max: 100)
-Token tokens[100];
-
-// Position of token parser
-int pos = 0;
-
-/*
  * Functions
  */
 
@@ -100,6 +90,17 @@ Node *expr();
 Node *mul();
 Node *term();
 noreturn void error(char*, char*);
+
+/*
+ * Global variables
+ */
+
+// Take a vector for tokens
+Token tokens[100];
+/* Vector *tokens = new_vector(); */
+
+// Position of token parser
+int pos = 0;
 
 /* Tokenizer (Raw source code parser) */
 
