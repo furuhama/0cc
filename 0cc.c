@@ -36,6 +36,16 @@ typedef struct {
     char *input; // string of token to display error messages
 } Token;
 
+/* Token initializers */
+
+Token *new_token(int type, int value, char* input) {
+    Token *token = malloc(sizeof(Token));
+    token->type = type;
+    token->value = value;
+    token->input = input;
+    return token;
+}
+
 /* Node (of Abstract Syntax Tree) */
 
 enum {
@@ -57,11 +67,7 @@ typedef struct {
     int len;
 } Vector;
 
-/*
- * Functions
- */
-
-/* Utilities */
+/* Vector functions */
 
 Vector *new_vector() {
     Vector *vec = malloc(sizeof(Vector));
@@ -98,8 +104,7 @@ noreturn void error(char*, char*);
  */
 
 // Take a vector for tokens
-Token tokens[100];
-/* Vector *tokens = new_vector(); */
+Vector *tokens;
 
 // Position of token parser
 int pos = 0;
@@ -107,7 +112,6 @@ int pos = 0;
 /* Tokenizer (Raw source code parser) */
 
 void tokenize(char *p) {
-    int i = 0;
     while (*p) {
         // Trim spaces
         if (isspace(*p)) {
@@ -117,19 +121,14 @@ void tokenize(char *p) {
 
         // Tokenize operators
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
-            tokens[i].type = *p;
-            tokens[i].input = p;
-            i++;
+            vec_push(tokens, (void *)new_token(*p, NULL, p));
             p++;
             continue;
         }
 
         // Tokenize digits
         if (isdigit(*p)) {
-            tokens[i].type = TK_NUM;
-            tokens[i].input = p;
-            tokens[i].value = strtol(p, &p, 10);
-            i++;
+            vec_push(tokens, (void *)new_token(TK_NUM, strtol(p, &p, 10), p));
             continue;
         }
 
@@ -137,8 +136,7 @@ void tokenize(char *p) {
         exit(1);
     }
 
-    tokens[i].type = TK_EOF;
-    tokens[i].input = p;
+    vec_push(tokens, (void *)new_token(TK_EOF, NULL, p));
 }
 
 // Error notifier
@@ -170,9 +168,11 @@ Node *new_node_num(int value) {
  * expr: mul
  * expr: mul `+` expr
  * expr: mul `-` expr
+ *
  * mul:  term
  * mul:  term `*` mul
  * mul:  term `/` mul
+ *
  * term: number
  * term: `(` expr `)`
  */
@@ -180,11 +180,11 @@ Node *new_node_num(int value) {
 Node *expr() {
     Node *lhs = mul();
 
-    if (tokens[pos].type == '+') {
+    if (((Token *)tokens->data[pos])->type == '+') {
         pos++;
         return new_node('+', lhs, expr());
     }
-    if (tokens[pos].type == '-') {
+    if (((Token *)tokens->data[pos])->type == '-') {
         pos++;
         return new_node('-', lhs, expr());
     }
@@ -195,11 +195,11 @@ Node *expr() {
 Node *mul() {
     Node *lhs = term();
 
-    if (tokens[pos].type == '*') {
+    if (((Token *)tokens->data[pos])->type == '*') {
         pos++;
         return new_node('*', lhs, mul());
     }
-    if (tokens[pos].type == '/') {
+    if (((Token *)tokens->data[pos])->type == '/') {
         pos++;
         return new_node('/', lhs, mul());
     }
@@ -208,21 +208,21 @@ Node *mul() {
 }
 
 Node *term() {
-    if (tokens[pos].type == TK_NUM) {
-        return new_node_num(tokens[pos++].value);
+    if (((Token *)tokens->data[pos])->type == TK_NUM) {
+        return new_node_num(((Token *)tokens->data[pos++])->value);
     }
-    if (tokens[pos].type == '(') {
+    if (((Token *)tokens->data[pos])->type == '(') {
         pos++;
         Node *node = expr();
 
-        if (tokens[pos].type != ')') {
-            error("Unexpected token, expect ')' but given token is: %s", tokens[pos].input);
+        if (((Token *)tokens->data[pos])->type != ')') {
+            error("Unexpected token, expect ')' but given token is: %s", ((Token *)tokens->data[pos])->input);
         }
 
         pos++;
         return node;
     }
-    error("Unexpected token, expect '(' or number but given token is: %s", tokens[pos].input);
+    error("Unexpected token, expect '(' or number but given token is: %s", ((Token *)tokens->data[pos])->input);
 }
 
 /* Assembly generator */
@@ -289,6 +289,8 @@ void runtest() {
 /* main */
 
 int main(int argc, char **argv) {
+    tokens = new_vector();
+
     if (argc != 2) {
         fprintf(stderr, "Wrong number of arguments.\n");
         return 1;
