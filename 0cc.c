@@ -66,8 +66,10 @@ typedef struct {
 Vector *new_vector() {
     Vector *vec = malloc(sizeof(Vector));
 
-    vec->data = malloc(sizeof(void *) * 16);
-    vec->capacity = 16;
+    int default_capacity = 16;
+
+    vec->data = malloc(sizeof(void *) * default_capacity);
+    vec->capacity = default_capacity;
     vec->len = 0;
 
     return vec;
