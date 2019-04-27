@@ -2,6 +2,26 @@
 
 C compiler
 
+## Usage
+
+### Build
+
+```
+make
+```
+
+and run...
+
+```
+./0cc '<C code>'
+```
+
+### Test
+
+```
+make test
+```
+
 ## What I did
 
 test1.c
