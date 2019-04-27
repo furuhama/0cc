@@ -27,6 +27,7 @@
 
 enum {
     TK_NUM = 256, // Integer token
+    TK_IDENT, // Identifier token
     TK_EOF, // End of File token
 };
 
@@ -50,13 +51,15 @@ Token *new_token(int type, int value, char* input) {
 
 enum {
     NODE_NUM = 256, // Integer node
+    NODE_IDENT, // Identifier node
 };
 
 typedef struct Node {
-    int type; // Operator or ND_NUM
+    int type; // Operator or NODE enum
     struct Node *lhs;
     struct Node *rhs;
-    int value; // value for ND_NUM
+    int value; // value for NODE_NUM
+    char name; // value for NODE_IDENT
 } Node;
 
 /* Vector */
@@ -95,6 +98,9 @@ void vec_push(Vector *vec, void *elem) {
 Token *current_token(int);
 Node *new_node(int, Node*, Node*);
 Node *new_node_num(int);
+void program();
+Node *stmt();
+Node *assign();
 Node *expr();
 Node *mul();
 Node *term();
@@ -104,8 +110,8 @@ noreturn void error(char*, char*);
  * Global variables
  */
 
-// Take a vector for tokens
 Vector *tokens;
+Vector *nodes;
 
 // Position of token parser
 int pos = 0;
@@ -121,7 +127,7 @@ void tokenize(char *p) {
         }
 
         // Tokenize operators
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=') {
             Token *tk = new_token(*p, 0, p);
             vec_push(tokens, (void *)tk);
             p++;
@@ -131,6 +137,13 @@ void tokenize(char *p) {
         // Tokenize digits
         if (isdigit(*p)) {
             Token *tk = new_token(TK_NUM, strtol(p, &p, 10), p);
+            vec_push(tokens, (void *)tk);
+            continue;
+        }
+
+        // Tokenize Identifiers
+        if ('a' <= *p && *p <= 'z') {
+            Token *tk = new_token(TK_IDENT, 0, p);
             vec_push(tokens, (void *)tk);
             continue;
         }
@@ -165,23 +178,69 @@ Node *new_node_num(int value) {
     return node;
 }
 
+Node *new_node_ident(char name) {
+    Node *node = malloc(sizeof(Node));
+    node->type = NODE_IDENT;
+    node->name = name;
+    return node;
+}
+
 /* Token parser */
 
 /*
+ * program: ε
+ * program: stmt program
+ *
+ * stmt: assign `;`
+ *
+ * assign: expr
+ * assign: expr `=` assign
+ *
  * expr: mul
- * expr: mul `+` expr
- * expr: mul `-` expr
+ * expr: expr `+` mul
+ * expr: expr `-` mul
  *
- * mul:  term
- * mul:  term `*` mul
- * mul:  term `/` mul
+ * mul: term
+ * mul: mul `*` term
+ * mul: mul `/` term
  *
- * term: number
- * term: `(` expr `)`
+ * term: num
+ * term: ident
+ * term `(` assign `)`
  */
 
 Token *current_token(int pos) {
     return (Token *)tokens->data[pos];
+}
+
+void program() {
+    while (current_token(pos)->type != TK_EOF) {
+        vec_push(nodes, (void *)stmt());
+    }
+
+    vec_push(nodes, NULL);
+}
+
+Node *stmt() {
+    Node *lhs = assign();
+
+    if (current_token(pos)->type == ';') {
+        pos++;
+        return lhs;
+    }
+
+    error("Unexpected token, expect ';' but given token is: %s", current_token(pos)->input);
+}
+
+Node *assign() {
+    Node *lhs = expr();
+
+    if (current_token(pos)->type == '=') {
+        pos++;
+        return new_node('=', lhs, assign());
+    }
+
+    return lhs;
 }
 
 Node *expr() {
@@ -218,6 +277,9 @@ Node *term() {
     if (current_token(pos)->type == TK_NUM) {
         return new_node_num(current_token(pos++)->value);
     }
+    if (current_token(pos)->type == TK_IDENT) {
+        return new_node_ident(current_token(pos++)->value);
+    }
     if (current_token(pos)->type == '(') {
         pos++;
         Node *node = expr();
@@ -229,7 +291,7 @@ Node *term() {
         pos++;
         return node;
     }
-    error("Unexpected token, expect '(' or number but given token is: %s", current_token(pos)->input);
+    error("Unexpected token, expect '(' or number or ident but given token is: %s", current_token(pos)->input);
 }
 
 /* Assembly generator */
@@ -297,6 +359,7 @@ void runtest() {
 
 int main(int argc, char **argv) {
     tokens = new_vector();
+    nodes = new_vector();
 
     if (argc != 2) {
         fprintf(stderr, "Wrong number of arguments.\n");
@@ -309,14 +372,29 @@ int main(int argc, char **argv) {
         return 0;
     }
 
+    // Tokenize input
+
     tokenize(argv[1]);
-    Node* node = expr();
+
+    // Convert tokens to nodes
+
+    program();
+
+    // Generate Assembly
 
     printf(".intel_syntax noprefix\n");
     printf(".global _main\n");
     printf("_main:\n");
 
-    generate(node);
+    for (int i = 0; i < nodes->len; i++) {
+        Node *node = (Node *)nodes->data[i];
+
+        if (node == NULL) {
+            break;
+        }
+
+        generate(node);
+    }
 
     printf("    pop rax\n");
     printf("    ret\n");
