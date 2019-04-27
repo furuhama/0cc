@@ -28,6 +28,7 @@
 enum {
     TK_NUM = 256, // Integer token
     TK_IDENT, // Identifier token
+    TK_RETURN, // Keyword `return` token
     TK_EOF, // End of File token
 };
 
@@ -54,6 +55,7 @@ Token *new_token(int type, int value, char name, char* input) {
 enum {
     NODE_NUM = 256, // Integer node
     NODE_IDENT, // Identifier node
+    NODE_RETURN, // `return` node
 };
 
 typedef struct Node {
@@ -93,6 +95,16 @@ void vec_push(Vector *vec, void *elem) {
     }
     vec->data[vec->len] = elem;
     vec->len++;
+}
+
+/* Util */
+
+// check the char can be a part of Identifier
+int is_alnum(char c) {
+    return ('a' <= c && c <= 'z') ||
+        ('A' <= c && c <= 'Z') ||
+        ('0' <= c && c <= '9') ||
+        ('0' == '_');
 }
 
 /* Prototype declarations */
@@ -141,6 +153,14 @@ void tokenize(char *p) {
         if (isdigit(*p)) {
             Token *tk = new_token(TK_NUM, strtol(p, &p, 10), NULL, p);
             vec_push(tokens, (void *)tk);
+            continue;
+        }
+
+        // `return`
+        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+            Token *tk = new_token(TK_RETURN, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
+            p += 6;
             continue;
         }
 
@@ -196,6 +216,7 @@ Node *new_node_ident(char name) {
  * program: stmt program
  *
  * stmt: assign `;`
+ * stmt: `return` assign `;`
  *
  * assign: expr
  * assign: expr `=` assign
@@ -226,11 +247,20 @@ void program() {
 }
 
 Node *stmt() {
-    Node *lhs = assign();
+    Node *node;
+
+    if (current_token(pos)->type == TK_RETURN) {
+        pos++;
+        node = malloc(sizeof(Node));
+        node->type = NODE_RETURN;
+        node->lhs = assign();
+    } else {
+        node = assign();
+    }
 
     if (current_token(pos)->type == ';') {
         pos++;
-        return lhs;
+        return node;
     }
 
     error("Unexpected token, expect ';' but given token is: %s", current_token(pos)->input);
@@ -312,6 +342,15 @@ void gen_lval(Node *node) {
 }
 
 void generate(Node *node) {
+    if (node->type == NODE_RETURN) {
+        generate(node->lhs);
+        printf("    pop rax\n");
+        printf("    mov rsp, rbp\n");
+        printf("    pop rbp\n");
+        printf("    ret\n");
+        return;
+    }
+
     if (node->type == NODE_NUM) {
         printf("    push %d\n", node->value);
         return;
