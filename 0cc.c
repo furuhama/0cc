@@ -121,14 +121,16 @@ void tokenize(char *p) {
 
         // Tokenize operators
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
-            vec_push(tokens, (void *)new_token(*p, NULL, p));
+            Token *tk = new_token(*p, 0, p);
+            vec_push(tokens, (void *)tk);
             p++;
             continue;
         }
 
         // Tokenize digits
         if (isdigit(*p)) {
-            vec_push(tokens, (void *)new_token(TK_NUM, strtol(p, &p, 10), p));
+            Token *tk = new_token(TK_NUM, strtol(p, &p, 10), p);
+            vec_push(tokens, (void *)tk);
             continue;
         }
 
@@ -136,7 +138,7 @@ void tokenize(char *p) {
         exit(1);
     }
 
-    vec_push(tokens, (void *)new_token(TK_EOF, NULL, p));
+    vec_push(tokens, (void *)new_token(TK_EOF, 0, p));
 }
 
 // Error notifier
@@ -149,7 +151,7 @@ noreturn void error(char* message, char* input) {
 
 Node *new_node(int op, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
-    node->type = op; // MEMO: ここの右辺は type じゃなくて op じゃないかな
+    node->type = op;
     node->lhs = lhs;
     node->rhs = rhs;
     return node;
@@ -274,14 +276,14 @@ void runtest() {
 
     expect(__LINE__, 0, vec->len);
 
-    for (int i = 0; i < 100; i++) {
+    for (long i = 0; i < 100; i++) {
         vec_push(vec, (void *)i);
     }
 
     expect(__LINE__, 100, vec->len);
-    expect(__LINE__, 0, (int)vec->data[0]);
-    expect(__LINE__, 50, (int)vec->data[50]);
-    expect(__LINE__, 99, (int)vec->data[99]);
+    expect(__LINE__, 0, (long)vec->data[0]);
+    expect(__LINE__, 50, (long)vec->data[50]);
+    expect(__LINE__, 99, (long)vec->data[99]);
 
     printf("OK\n");
 }
