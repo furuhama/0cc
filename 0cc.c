@@ -92,6 +92,7 @@ void vec_push(Vector *vec, void *elem) {
 
 /* Prototype declarations */
 
+Token *current_token(int);
 Node *new_node(int, Node*, Node*);
 Node *new_node_num(int);
 Node *expr();
@@ -179,14 +180,18 @@ Node *new_node_num(int value) {
  * term: `(` expr `)`
  */
 
+Token *current_token(int pos) {
+    return (Token *)tokens->data[pos];
+}
+
 Node *expr() {
     Node *lhs = mul();
 
-    if (((Token *)tokens->data[pos])->type == '+') {
+    if (current_token(pos)->type == '+') {
         pos++;
         return new_node('+', lhs, expr());
     }
-    if (((Token *)tokens->data[pos])->type == '-') {
+    if (current_token(pos)->type == '-') {
         pos++;
         return new_node('-', lhs, expr());
     }
@@ -197,11 +202,11 @@ Node *expr() {
 Node *mul() {
     Node *lhs = term();
 
-    if (((Token *)tokens->data[pos])->type == '*') {
+    if (current_token(pos)->type == '*') {
         pos++;
         return new_node('*', lhs, mul());
     }
-    if (((Token *)tokens->data[pos])->type == '/') {
+    if (current_token(pos)->type == '/') {
         pos++;
         return new_node('/', lhs, mul());
     }
@@ -210,21 +215,21 @@ Node *mul() {
 }
 
 Node *term() {
-    if (((Token *)tokens->data[pos])->type == TK_NUM) {
-        return new_node_num(((Token *)tokens->data[pos++])->value);
+    if (current_token(pos)->type == TK_NUM) {
+        return new_node_num(current_token(pos++)->value);
     }
-    if (((Token *)tokens->data[pos])->type == '(') {
+    if (current_token(pos)->type == '(') {
         pos++;
         Node *node = expr();
 
-        if (((Token *)tokens->data[pos])->type != ')') {
-            error("Unexpected token, expect ')' but given token is: %s", ((Token *)tokens->data[pos])->input);
+        if (current_token(pos)->type != ')') {
+            error("Unexpected token, expect ')' but given token is: %s", current_token(pos)->input);
         }
 
         pos++;
         return node;
     }
-    error("Unexpected token, expect '(' or number but given token is: %s", ((Token *)tokens->data[pos])->input);
+    error("Unexpected token, expect '(' or number but given token is: %s", current_token(pos)->input);
 }
 
 /* Assembly generator */
