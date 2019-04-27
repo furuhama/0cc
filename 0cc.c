@@ -34,15 +34,17 @@ enum {
 typedef struct {
     int type; // type of token
     int value; // value of TK_NUM type token
+    char name; // value of TK_IDENT type token
     char *input; // string of token to display error messages
 } Token;
 
 /* Token initializers */
 
-Token *new_token(int type, int value, char* input) {
+Token *new_token(int type, int value, char name, char* input) {
     Token *token = malloc(sizeof(Token));
     token->type = type;
     token->value = value;
+    token->name = name;
     token->input = input;
     return token;
 }
@@ -98,6 +100,7 @@ void vec_push(Vector *vec, void *elem) {
 Token *current_token(int);
 Node *new_node(int, Node*, Node*);
 Node *new_node_num(int);
+Node *new_node_ident(char);
 void program();
 Node *stmt();
 Node *assign();
@@ -128,7 +131,7 @@ void tokenize(char *p) {
 
         // Tokenize operators
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=') {
-            Token *tk = new_token(*p, 0, p);
+            Token *tk = new_token(*p, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p++;
             continue;
@@ -136,15 +139,16 @@ void tokenize(char *p) {
 
         // Tokenize digits
         if (isdigit(*p)) {
-            Token *tk = new_token(TK_NUM, strtol(p, &p, 10), p);
+            Token *tk = new_token(TK_NUM, strtol(p, &p, 10), NULL, p);
             vec_push(tokens, (void *)tk);
             continue;
         }
 
         // Tokenize Identifiers
         if ('a' <= *p && *p <= 'z') {
-            Token *tk = new_token(TK_IDENT, 0, p);
+            Token *tk = new_token(TK_IDENT, 0, *p, p);
             vec_push(tokens, (void *)tk);
+            p++;
             continue;
         }
 
@@ -152,7 +156,7 @@ void tokenize(char *p) {
         exit(1);
     }
 
-    vec_push(tokens, (void *)new_token(TK_EOF, 0, p));
+    vec_push(tokens, (void *)new_token(TK_EOF, 0, NULL, p));
 }
 
 // Error notifier
@@ -278,7 +282,7 @@ Node *term() {
         return new_node_num(current_token(pos++)->value);
     }
     if (current_token(pos)->type == TK_IDENT) {
-        return new_node_ident(current_token(pos++)->value);
+        return new_node_ident(current_token(pos++)->name);
     }
     if (current_token(pos)->type == '(') {
         pos++;
@@ -296,9 +300,39 @@ Node *term() {
 
 /* Assembly generator */
 
+void gen_lval(Node *node) {
+    if (node->type != NODE_IDENT) {
+        error("Left value of assinment is not variable", NULL);
+    }
+
+    int offset = ('z' - node->name + 1) * 8;
+    printf("    mov rax, rbp\n");
+    printf("    sub rax, %d\n", offset);
+    printf("    push rax\n");
+}
+
 void generate(Node *node) {
     if (node->type == NODE_NUM) {
         printf("    push %d\n", node->value);
+        return;
+    }
+
+    if (node->type == NODE_IDENT) {
+        gen_lval(node);
+        printf("    pop rax\n");
+        printf("    mov rax, [rax]\n");
+        printf("    push rax\n");
+        return;
+    }
+
+    if (node->type == '=') {
+        gen_lval(node->lhs);
+        generate(node->rhs);
+
+        printf("    pop rdi\n");
+        printf("    pop rax\n");
+        printf("    mov [rax], rdi\n");
+        printf("    push rdi\n");
         return;
     }
 
@@ -386,17 +420,22 @@ int main(int argc, char **argv) {
     printf(".global _main\n");
     printf("_main:\n");
 
-    for (int i = 0; i < nodes->len; i++) {
+    // Prologue: take places for 26 characters
+    printf("    push rbp\n");
+    printf("    mov rbp, rsp\n");
+    printf("    sub rsp, 208\n");
+
+    // nodes's last element is EOF node, and we will ignore it
+    for (int i = 0; i < nodes->len - 1; i++) {
         Node *node = (Node *)nodes->data[i];
 
-        if (node == NULL) {
-            break;
-        }
-
         generate(node);
+
+        printf("    pop rax\n");
     }
 
-    printf("    pop rax\n");
+    printf("    mov rsp, rbp\n");
+    printf("    pop rbp\n");
     printf("    ret\n");
     return 0;
 }
