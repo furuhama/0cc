@@ -41,6 +41,9 @@ try 'a = 42; 18;' 18
 try 'a = 8; b = 4; a;' 8
 try 'z = 100; x = 20; y = 2; z;' 100
 try 'w = 5; v = 2; w + v;' 7
+try '(a = 2); a;' 2
+try '(a = 2); b = (a + 10 * 5); b;' 52
+try 'a = b = 2; a + b;' 4
 
 try 'return 1;' 1
 try '100; return 10; 50;' 10
@@ -48,5 +51,6 @@ try 'a = 10; return a;' 10
 try 'b = 42; c = 8; return c; b;' 8
 try 'v = 20; x = 10; return v + x; v;' 30
 try 'v = 20; x = 10; return v + v + x; v;' 50
+try '(a = b = 4); c = 1; return a + b + c;' 9
 
 echo OK
