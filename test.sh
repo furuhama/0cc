@@ -10,7 +10,7 @@ try() {
   actual="$?"
 
   if [ "$actual" != "$expected" ]; then
-    echo -e "expected: $expected\tinput: '$input'"
+    echo -e "[line $BASH_LINENO] expected: $expected\tinput: '$input'"
     echo "but got:  $actual"
     exit 1
   fi
