@@ -60,4 +60,9 @@ try 'v = 20; x = 10; return v + v + x; v;' 50
 try '(a = b = 4); c = 1; return a + b + c;' 9
 try 'e = +5; w = -10; (a = b = -1); return a * b * e - w;' 15
 
+try 'abc = 10; return abc;' 10
+try 'abc = 10; def = 20; return abc + def;' 30
+try 'xyz = abc = 15; pqr = xyz + abc; return xyz + pqr;' 45
+try 'abcd = 10; abc = 5; ab = 2; a = -1; return abcd + abc * a + ab;' 7
+
 echo OK
