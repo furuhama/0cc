@@ -91,4 +91,13 @@ try 'xyz = abc = 15; pqr = xyz + abc; return xyz + pqr;' 45
 try 'abcd = 10; abc = 5; ab = 2; a = -1; return abcd + abc * a + ab;' 7
 try 'abcd = 10; abc = 5; ab = 2; a = -1; return abcd + abc * a + ab >= 3;' 1
 
+try 'if (1) return 42;' 42
+try 'a = 10; if (1) a = 1; return a;' 1
+try 'ifs = 10; if (ifs >= 10) return 42;' 42
+try 'ifs = 10; if (0) ifs = 2; return ifs;' 10
+try 'ifs = 10; if (5 != 5) ifs = 2; return ifs;' 10
+try 'if (0) return 1; return 5;' 5
+try 'a = 2; if (0) a = 5; return a;' 2
+try 'if (1) if (1) return 1;' 1
+
 echo OK
