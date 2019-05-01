@@ -11,11 +11,14 @@
  * Supported syntax:
  *
  * program: ε
- * program: stmt program
+ * program: sentence program
  *
- * stmt: assign `;`
+ * sentence: stmt `;`
+ *
+ * stmt: assign
  * stmt: `if` `(` assign `)` stmt
- * stmt: `return` assign `;`
+ * stmt: `if` `(` assign `)` stmt `else` stmt
+ * stmt: `return` assign
  *
  * assign: equality
  * assign: equality `=` assign
@@ -65,6 +68,7 @@ enum {
     TK_GT, // Greater Than
     TK_GE, // Greater than or Equal to
     TK_IF, // Keyword `if` token
+    TK_ELSE, // Keyword `else` token
 };
 
 // Token
@@ -112,6 +116,7 @@ int pos = 0;
 
 /* Prototypes */
 
+Node *sentence();
 Node *stmt();
 Node *assign();
 Node *equality();
@@ -123,7 +128,8 @@ Node *term();
 Node *new_node(int, Node*, Node*);
 Node *new_node_num(int);
 Node *new_node_ident(char*);
-Node *new_node_if(Node *, Node *);
+Node *new_node_if(Node *, Node *, Node *);
+void dump_tokens();
 
 /* Tokenizer (Raw source code parser) */
 
@@ -209,6 +215,14 @@ void tokenize(char *p) {
             continue;
         }
 
+        // `else`
+        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
+            Token *tk = new_token(TK_ELSE, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
+            p += 4;
+            continue;
+        }
+
         // Tokenize Identifiers
         if ('a' <= *p && *p <= 'z') {
             int i = 0;
@@ -255,7 +269,7 @@ Node *new_node_ident(char *name) {
     return node;
 }
 
-Node *new_node_if(Node *cond, Node *if_body) {
+Node *new_node_if(Node *cond, Node *if_body, Node *else_body) {
     Node *node = malloc(sizeof(Node));
     node->type = NODE_IF;
     node->lhs = cond;
@@ -263,6 +277,7 @@ Node *new_node_if(Node *cond, Node *if_body) {
     node->rhs = malloc(sizeof(Node));
     node->rhs->type = NODE_IF_BODY;
     node->rhs->lhs = if_body;
+    node->rhs->rhs = else_body;
 
     return node;
 }
@@ -271,10 +286,21 @@ Node *new_node_if(Node *cond, Node *if_body) {
 
 void program() {
     while (current_token(pos)->type != TK_EOF) {
-        vec_push(nodes, (void *)stmt());
+        vec_push(nodes, (void *)sentence());
     }
 
     vec_push(nodes, NULL);
+}
+
+Node *sentence() {
+    Node *node = stmt();
+
+    if (current_token(pos)->type != ';') {
+        error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+    }
+    pos++;
+
+    return node;
 }
 
 Node *stmt() {
@@ -286,11 +312,6 @@ Node *stmt() {
         node = malloc(sizeof(Node));
         node->type = NODE_RETURN;
         node->lhs = assign();
-
-        if (current_token(pos)->type != ';') {
-            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
-        }
-        pos++;
     } else if (current_token(pos)->type == TK_IF) {
         pos++;
 
@@ -307,25 +328,17 @@ Node *stmt() {
         pos++;
 
         Node *if_body = stmt();
+        Node *else_body = NULL;
 
-        node = new_node_if(cond, if_body);
+        // Read ahead current position to set else body
+        if (tokens->len >= pos && current_token(pos)->type == TK_ELSE) {
+            pos++;
+            else_body = stmt();
+        }
 
-        //
-        // Implement `else` here like this
-        //
-        // pos++;
-        // if (current == TK_ELSE) {
-        //     pos++;
-        //     if_body->rhs = stmt();
-        // }
-        //
+        node = new_node_if(cond, if_body, else_body);
     } else {
         node = assign();
-
-        if (current_token(pos)->type != ';') {
-            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
-        }
-        pos++;
     }
 
     return node;

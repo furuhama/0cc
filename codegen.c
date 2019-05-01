@@ -133,8 +133,17 @@ void generate(Node *node) {
         generate(node->lhs);
         Node *if_body = node->rhs;
 
-        if (if_body->rhs) {
+        if (if_body->rhs != NULL) {
             // `if` ~ `else`
+            printf("    pop rax\n");
+            printf("    cmp rax, 0\n");
+            printf("    je .Lelse%d\n", label);
+            generate(if_body->lhs);
+            printf("    jmp .Lend%d\n", label);
+            printf(".Lelse%d:\n", label);
+            generate(if_body->rhs);
+            printf(".Lend%d:\n", label);
+            return;
         } else {
             // `if` ~
             printf("    pop rax\n");
