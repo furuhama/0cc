@@ -15,6 +15,8 @@ enum {
     NODE_NE,
     NODE_LE,
     NODE_LT,
+    NODE_IF, // `if` node (lhs has `if` condition assignment, rhs has NODE_IF_BODY node)
+    NODE_IF_BODY, // `if` body node (lhs has `if` statement, rhs has `else` statement)
 };
 
 // Node (of Abstract Syntax Tree)
@@ -45,6 +47,7 @@ typedef struct {
 Vector *tokens;
 Vector *nodes;
 Map *vars;
+int condition_count;
 
 // Vector fucntions
 Vector *new_vector();

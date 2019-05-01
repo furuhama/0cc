@@ -123,6 +123,30 @@ void generate(Node *node) {
         return;
     }
 
+    if (node->type == NODE_IF) {
+        condition_count++;
+        // Copy `condition_count` value, because this variable is not closed to this function
+        // and there is possibility of nested condition conrtol (e.x. if (true) if (false) stmt else stmt;)
+        // In such case, `condition_count` can't be stable value.
+        int label = condition_count;
+
+        generate(node->lhs);
+        Node *if_body = node->rhs;
+
+        if (if_body->rhs) {
+            // `if` ~ `else`
+        } else {
+            // `if` ~
+            printf("    pop rax\n");
+            printf("    cmp rax, 0\n");
+            printf("    je .Lend%d\n", label);
+            generate(if_body->lhs);
+            printf(".Lend%d:\n", label);
+            printf("    push rax\n");
+            return;
+        }
+    }
+
     generate(node->lhs);
     generate(node->rhs);
 

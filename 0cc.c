@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
     tokens = new_vector();
     nodes = new_vector();
     vars = new_map();
+    condition_count = 0;
 
     if (argc != 2) {
         fprintf(stderr, "Wrong number of arguments.\n");

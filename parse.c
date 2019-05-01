@@ -14,6 +14,7 @@
  * program: stmt program
  *
  * stmt: assign `;`
+ * stmt: `if` `(` assign `)` stmt
  * stmt: `return` assign `;`
  *
  * assign: equality
@@ -63,6 +64,7 @@ enum {
     TK_LE, // Less than or Equal to
     TK_GT, // Greater Than
     TK_GE, // Greater than or Equal to
+    TK_IF, // Keyword `if` token
 };
 
 // Token
@@ -121,6 +123,7 @@ Node *term();
 Node *new_node(int, Node*, Node*);
 Node *new_node_num(int);
 Node *new_node_ident(char*);
+Node *new_node_if(Node *, Node *);
 
 /* Tokenizer (Raw source code parser) */
 
@@ -184,7 +187,8 @@ void tokenize(char *p) {
 
         // Tokenize digits
         if (isdigit(*p)) {
-            Token *tk = new_token(TK_NUM, strtol(p, &p, 10), NULL, p);
+            char *input = p;
+            Token *tk = new_token(TK_NUM, strtol(p, &p, 10), NULL, input);
             vec_push(tokens, (void *)tk);
             continue;
         }
@@ -194,6 +198,14 @@ void tokenize(char *p) {
             Token *tk = new_token(TK_RETURN, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p += 6;
+            continue;
+        }
+
+        // `if`
+        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
+            Token *tk = new_token(TK_IF, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
+            p += 2;
             continue;
         }
 
@@ -243,6 +255,18 @@ Node *new_node_ident(char *name) {
     return node;
 }
 
+Node *new_node_if(Node *cond, Node *if_body) {
+    Node *node = malloc(sizeof(Node));
+    node->type = NODE_IF;
+    node->lhs = cond;
+
+    node->rhs = malloc(sizeof(Node));
+    node->rhs->type = NODE_IF_BODY;
+    node->rhs->lhs = if_body;
+
+    return node;
+}
+
 /* Token parser */
 
 void program() {
@@ -258,19 +282,53 @@ Node *stmt() {
 
     if (current_token(pos)->type == TK_RETURN) {
         pos++;
+
         node = malloc(sizeof(Node));
         node->type = NODE_RETURN;
         node->lhs = assign();
+
+        if (current_token(pos)->type != ';') {
+            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+        }
+        pos++;
+    } else if (current_token(pos)->type == TK_IF) {
+        pos++;
+
+        if (current_token(pos)->type != '(') {
+            error("Unexpected token, expect '(', but given token is: %s\n", current_token(pos)->input);
+        }
+        pos++;
+
+        Node *cond = assign();
+
+        if (current_token(pos)->type != ')') {
+            error("Unexpected token, expect ')', but given token is: %s\n", current_token(pos)->input);
+        }
+        pos++;
+
+        Node *if_body = stmt();
+
+        node = new_node_if(cond, if_body);
+
+        //
+        // Implement `else` here like this
+        //
+        // pos++;
+        // if (current == TK_ELSE) {
+        //     pos++;
+        //     if_body->rhs = stmt();
+        // }
+        //
     } else {
         node = assign();
-    }
 
-    if (current_token(pos)->type == ';') {
+        if (current_token(pos)->type != ';') {
+            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+        }
         pos++;
-        return node;
     }
 
-    error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+    return node;
 }
 
 Node *assign() {
@@ -390,4 +448,12 @@ Node *term() {
         return node;
     }
     error("Unexpected token, expect '(' or number or ident but given token is: %s\n", current_token(pos)->input);
+}
+
+// Debug
+void dump_tokens() {
+    for (int i = 0; i < tokens->len; i++) {
+        Token *cur = (Token *)tokens->data[i];
+        printf("# type: %d, value: %d, name: %s, input: %s\n", cur->type, cur->value, cur->name, cur->input);
+    }
 }
