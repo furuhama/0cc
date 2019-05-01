@@ -45,27 +45,8 @@ int main(int argc, char **argv) {
 
     // Generate Assembly
 
-    printf(".intel_syntax noprefix\n");
-    printf(".global _main\n");
-    printf("_main:\n");
+    codegen(nodes);
 
-    // Prologue: take places for 26 characters
-    printf("    push rbp\n");
-    printf("    mov rbp, rsp\n");
-    printf("    sub rsp, 208\n");
-
-    // nodes's last element is EOF node, and we will ignore it
-    for (int i = 0; i < nodes->len - 1; i++) {
-        Node *node = (Node *)nodes->data[i];
-
-        generate(node);
-
-        printf("    pop rax\n");
-    }
-
-    printf("    mov rsp, rbp\n");
-    printf("    pop rbp\n");
-    printf("    ret\n");
     return 0;
 }
 

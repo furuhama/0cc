@@ -4,7 +4,30 @@
 
 #include "0cc.h"
 
+void prefix();
+void prologue();
+void epilogue();
+void generate(Node *);
+void gen_lval(Node *);
+
 /* Assembly generator */
+
+void codegen(Vector *nodes) {
+    prefix();
+
+    prologue();
+
+    // nodes's last element is EOF node, and we will ignore it
+    for (int i = 0; i < nodes->len - 1; i++) {
+        Node *node = (Node *)nodes->data[i];
+
+        generate(node);
+
+        printf("    pop rax\n");
+    }
+
+    epilogue();
+}
 
 void gen_lval(Node *node) {
     if (node->type != NODE_IDENT) {
@@ -73,4 +96,23 @@ void generate(Node *node) {
     }
 
     printf("    push rax\n");
+}
+
+void prologue() {
+    // Prologue: take places for 26 characters
+    printf("    push rbp\n");
+    printf("    mov rbp, rsp\n");
+    printf("    sub rsp, 208\n");
+}
+
+void epilogue() {
+    printf("    mov rsp, rbp\n");
+    printf("    pop rbp\n");
+    printf("    ret\n");
+}
+
+void prefix() {
+    printf(".intel_syntax noprefix\n");
+    printf(".global _main\n");
+    printf("_main:\n");
 }

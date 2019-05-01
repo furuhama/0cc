@@ -68,8 +68,7 @@ Node *unary();
 Node *term();
 
 // Codegen fucntions
-void gen_lval(Node *);
-void generate(Node *);
+void codegen(Vector *);
 
 // Utils
 noreturn void error(char*, char*);
