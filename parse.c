@@ -39,6 +39,8 @@
 
 #include "0cc.h"
 
+/* Token */
+
 // Token type
 enum {
     TK_NUM = 256, // Integer token
@@ -55,8 +57,7 @@ typedef struct {
     char *input; // string of token to display error messages
 } Token;
 
-/* Token initializers */
-
+// Token initializer
 Token *new_token(int type, int value, char *name, char* input) {
     Token *token = malloc(sizeof(Token));
     token->type = type;
@@ -82,6 +83,7 @@ int is_alnum(char c) {
         ('0' == '_');
 }
 
+// get current token by position
 Token *current_token(int pos) {
     return (Token *)tokens->data[pos];
 }
@@ -89,6 +91,18 @@ Token *current_token(int pos) {
 /* Variables */
 
 int pos = 0;
+
+/* Prototypes */
+
+Node *stmt();
+Node *assign();
+Node *expr();
+Node *mul();
+Node *unary();
+Node *term();
+Node *new_node(int, Node*, Node*);
+Node *new_node_num(int);
+Node *new_node_ident(char*);
 
 /* Tokenizer (Raw source code parser) */
 

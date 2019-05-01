@@ -53,19 +53,8 @@ void *map_get(Map *, char *);
 // Tokenize functions
 void tokenize(char *);
 
-// Node fucntions
-Node *new_node(int, Node*, Node*);
-Node *new_node_num(int);
-Node *new_node_ident(char*);
-
 // Parse fucntions
 void program();
-Node *stmt();
-Node *assign();
-Node *expr();
-Node *mul();
-Node *unary();
-Node *term();
 
 // Codegen fucntions
 void codegen(Vector *);
