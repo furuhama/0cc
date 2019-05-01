@@ -35,13 +35,13 @@ enum {
 typedef struct {
     int type; // type of token
     int value; // value of TK_NUM type token
-    char name; // value of TK_IDENT type token
+    char *name; // value of TK_IDENT type token
     char *input; // string of token to display error messages
 } Token;
 
 /* Token initializers */
 
-Token *new_token(int type, int value, char name, char* input) {
+Token *new_token(int type, int value, char *name, char* input) {
     Token *token = malloc(sizeof(Token));
     token->type = type;
     token->value = value;
@@ -63,7 +63,7 @@ typedef struct Node {
     struct Node *lhs;
     struct Node *rhs;
     int value; // value for NODE_NUM
-    char name; // value for NODE_IDENT
+    char *name; // value for NODE_IDENT
 } Node;
 
 /* Vector */
@@ -145,7 +145,7 @@ int is_alnum(char c) {
 Token *current_token(int);
 Node *new_node(int, Node*, Node*);
 Node *new_node_num(int);
-Node *new_node_ident(char);
+Node *new_node_ident(char*);
 void program();
 Node *stmt();
 Node *assign();
@@ -200,7 +200,15 @@ void tokenize(char *p) {
 
         // Tokenize Identifiers
         if ('a' <= *p && *p <= 'z') {
-            Token *tk = new_token(TK_IDENT, 0, *p, p);
+            int i = 0;
+            char *pp = p;
+            while (is_alnum(*pp)) {
+                i++;
+                pp++;
+            }
+            char *ident = strndup(p, i);
+
+            Token *tk = new_token(TK_IDENT, 0, ident, p);
             vec_push(tokens, (void *)tk);
             p++;
             continue;
@@ -236,7 +244,7 @@ Node *new_node_num(int value) {
     return node;
 }
 
-Node *new_node_ident(char name) {
+Node *new_node_ident(char *name) {
     Node *node = malloc(sizeof(Node));
     node->type = NODE_IDENT;
     node->name = name;
@@ -386,7 +394,7 @@ void gen_lval(Node *node) {
         error("Left value of assinment is not variable", NULL);
     }
 
-    int offset = ('z' - node->name + 1) * 8;
+    int offset = ('z' - *node->name + 1) * 8;
     printf("    mov rax, rbp\n");
     printf("    sub rax, %d\n", offset);
     printf("    push rax\n");
