@@ -49,6 +49,7 @@ try 'w = 5; v = 2; w + v;' 7
 try '(a = 2); a;' 2
 try '(a = 2); b = (a + 10 * 5); b;' 52
 try 'a = b = 2; a + b;' 4
+try 'a = b = 3 ; 1 + 1 + a + b  ;' 8
 
 try 'return 1;' 1
 try '100; return 10; 50;' 10
