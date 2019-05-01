@@ -118,6 +118,7 @@ Node *stmt();
 Node *assign();
 Node *expr();
 Node *mul();
+Node *unary();
 Node *term();
 noreturn void error(char*, char*);
 
@@ -225,9 +226,13 @@ Node *new_node_ident(char name) {
  * expr: expr `+` mul
  * expr: expr `-` mul
  *
- * mul: term
- * mul: mul `*` term
- * mul: mul `/` term
+ * mul: unary
+ * mul: mul `*` unary
+ * mul: mul `/` unary
+ *
+ * unary: term
+ * unary: `+` term
+ * unary: `-` term
  *
  * term: num
  * term: ident
@@ -293,7 +298,7 @@ Node *expr() {
 }
 
 Node *mul() {
-    Node *lhs = term();
+    Node *lhs = unary();
 
     if (current_token(pos)->type == '*') {
         pos++;
@@ -305,6 +310,19 @@ Node *mul() {
     }
 
     return lhs;
+}
+
+Node *unary() {
+    if (current_token(pos)->type == '+') {
+        pos++;
+        return term();
+    }
+    if (current_token(pos)->type == '-') {
+        pos++;
+        return new_node('-', new_node_num(0), term());
+    }
+
+    return term();
 }
 
 Node *term() {
