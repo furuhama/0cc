@@ -97,6 +97,39 @@ void vec_push(Vector *vec, void *elem) {
     vec->len++;
 }
 
+/* Map */
+
+typedef struct {
+    Vector *keys;
+    Vector *vals;
+} Map;
+
+/* Map functions */
+
+Map * new_map() {
+    Map *map = malloc(sizeof(Map));
+
+    map->keys = new_vector();
+    map->vals = new_vector();
+
+    return map;
+}
+
+void map_push(Map *map, char *key, void *val) {
+    vec_push(map->keys, (void *)key);
+    vec_push(map->vals, val);
+}
+
+void *map_get(Map *map, char *key) {
+    for (int i = map->keys->len - 1; i >= 0; i--) {
+        if (strcmp((char *)map->keys->data[i], key) == 0) {
+            return map->vals->data[i];
+        }
+    }
+
+    return NULL;
+}
+
 /* Util */
 
 // check the char can be a part of Identifier
@@ -430,6 +463,7 @@ void expect(int line, int expected, int actual) {
 }
 
 void runtest() {
+    // Vector test
     Vector *vec = new_vector();
 
     expect(__LINE__, 0, vec->len);
@@ -442,6 +476,20 @@ void runtest() {
     expect(__LINE__, 0, (long)vec->data[0]);
     expect(__LINE__, 50, (long)vec->data[50]);
     expect(__LINE__, 99, (long)vec->data[99]);
+
+    // Map test
+    Map *map = new_map();
+
+    expect(__LINE__, 0, (long)map_get(map, "foo"));
+
+    map_push(map, "foo", (void *)2);
+    expect(__LINE__, 2, (long)map_get(map, "foo"));
+
+    map_push(map, "bar", (void *)4);
+    expect(__LINE__, 4, (long)map_get(map, "bar"));
+
+    map_push(map, "foo", (void *)6);
+    expect(__LINE__, 6, (long)map_get(map, "foo"));
 
     printf("OK\n");
 }
