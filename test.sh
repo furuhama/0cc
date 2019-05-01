@@ -34,6 +34,31 @@ try '(2 + 3 * 4 - 12 + 5 - 7) * (2 + 4 - 1) * (100 + 23 - 23 + 73 - 42 + 2379 + 
 try '-3 + 5 * 2;' 7
 try '-3 * +5 + 20;' 5
 
+try '1 == 2;' 0
+try '1 == 1;' 1
+try 'a = 1 == 1; return a;' 1
+try 'a = 1; b = 2; return a == b;' 0
+try '1 != 2;' 1
+try '3 != 3;' 0
+try 'a = 1 != 2; b = a != 0; return b;' 1
+try 'a = 1; b = 2; c = a == a != b; return c;' 1
+try '1 <= 2;' 1
+try '1 < 2;' 1
+try '2 <= 2;' 1
+try '2 < 2;' 0
+try '3 <= 2;' 0
+try '3 < 2;' 0
+try '1 >= 2;' 0
+try '1 > 2;' 0
+try '2 >= 2;' 1
+try '2 > 2;' 0
+try '3 >= 2;' 1
+try '3 > 2;' 1
+try '-2 < -3;' 0
+try 'a = 2 < 3; return a;' 1
+try 'a = 1; b = a + 1 < 3; return b;' 1
+try 'a = 1; b = a + (1 < 3); return b;' 2
+
 try '42; 0;' 0
 try '42; 0; 30;' 30
 
@@ -64,5 +89,6 @@ try 'abc = 10; return abc;' 10
 try 'abc = 10; def = 20; return abc + def;' 30
 try 'xyz = abc = 15; pqr = xyz + abc; return xyz + pqr;' 45
 try 'abcd = 10; abc = 5; ab = 2; a = -1; return abcd + abc * a + ab;' 7
+try 'abcd = 10; abc = 5; ab = 2; a = -1; return abcd + abc * a + ab >= 3;' 1
 
 echo OK
