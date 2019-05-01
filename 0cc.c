@@ -316,7 +316,7 @@ Node *term() {
     }
     if (current_token(pos)->type == '(') {
         pos++;
-        Node *node = expr();
+        Node *node = assign();
 
         if (current_token(pos)->type != ')') {
             error("Unexpected token, expect ')' but given token is: %s", current_token(pos)->input);
