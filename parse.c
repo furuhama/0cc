@@ -153,8 +153,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        fprintf(stderr, "Can't tokenize: %s\n", p);
-        exit(1);
+        error("Can't tokenize: %s\n", p);
     }
 
     vec_push(tokens, (void *)new_token(TK_EOF, 0, NULL, p));
@@ -211,7 +210,7 @@ Node *stmt() {
         return node;
     }
 
-    error("Unexpected token, expect ';' but given token is: %s", current_token(pos)->input);
+    error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
 }
 
 Node *assign() {
@@ -280,11 +279,11 @@ Node *term() {
         Node *node = assign();
 
         if (current_token(pos)->type != ')') {
-            error("Unexpected token, expect ')' but given token is: %s", current_token(pos)->input);
+            error("Unexpected token, expect ')' but given token is: %s\n", current_token(pos)->input);
         }
 
         pos++;
         return node;
     }
-    error("Unexpected token, expect '(' or number or ident but given token is: %s", current_token(pos)->input);
+    error("Unexpected token, expect '(' or number or ident but given token is: %s\n", current_token(pos)->input);
 }
