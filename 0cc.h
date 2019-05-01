@@ -11,6 +11,10 @@ enum {
     NODE_NUM = 256, // Integer node
     NODE_IDENT, // Identifier node
     NODE_RETURN, // `return` node
+    NODE_EQ,
+    NODE_NE,
+    NODE_LE,
+    NODE_LT,
 };
 
 // Node (of Abstract Syntax Tree)

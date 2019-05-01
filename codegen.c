@@ -56,6 +56,54 @@ void generate(Node *node) {
         return;
     }
 
+    if (node->type == NODE_EQ) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("    pop rdi\n");
+        printf("    pop rax\n");
+        printf("    cmp rax, rdi\n");
+        printf("    sete al\n");
+        printf("    movzx rax, al\n"); // In Linux, use `movzb` instead.
+        printf("    push rax\n");
+        return;
+    }
+
+    if (node->type == NODE_NE) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("    pop rdi\n");
+        printf("    pop rax\n");
+        printf("    cmp rax, rdi\n");
+        printf("    setne al\n");
+        printf("    movzx rax, al\n"); // In Linux, use `movzb` instead.
+        printf("    push rax\n");
+        return;
+    }
+
+    if (node->type == NODE_LE) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("    pop rdi\n");
+        printf("    pop rax\n");
+        printf("    cmp rax, rdi\n");
+        printf("    setle al\n");
+        printf("    movzx rax, al\n"); // In Linux, use `movzb` instead.
+        printf("    push rax\n");
+        return;
+    }
+
+    if (node->type == NODE_LT) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("    pop rdi\n");
+        printf("    pop rax\n");
+        printf("    cmp rax, rdi\n");
+        printf("    setl al\n");
+        printf("    movzx rax, al\n"); // In Linux, use `movzb` instead.
+        printf("    push rax\n");
+        return;
+    }
+
     if (node->type == NODE_IDENT) {
         gen_lval(node);
         printf("    pop rax\n");

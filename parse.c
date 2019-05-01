@@ -16,8 +16,18 @@
  * stmt: assign `;`
  * stmt: `return` assign `;`
  *
- * assign: expr
- * assign: expr `=` assign
+ * assign: equality
+ * assign: equality `=` assign
+ *
+ * equality: relational
+ * equality: equality `==` relational
+ * equality: equality `!=` relational
+ *
+ * relational: expr
+ * relational: relational `<=` expr
+ * relational: relational `<` expr
+ * relational: relational `>=` expr
+ * relational: relational `>` expr
  *
  * expr: mul
  * expr: expr `+` mul
@@ -47,6 +57,12 @@ enum {
     TK_IDENT, // Identifier token
     TK_RETURN, // Keyword `return` token
     TK_EOF, // End of File token
+    TK_EQ, // Equal
+    TK_NE, // Not Equal
+    TK_LT, // Less Than
+    TK_LE, // Less than or Equal to
+    TK_GT, // Greater Than
+    TK_GE, // Greater than or Equal to
 };
 
 // Token
@@ -96,6 +112,8 @@ int pos = 0;
 
 Node *stmt();
 Node *assign();
+Node *equality();
+Node *relational();
 Node *expr();
 Node *mul();
 Node *unary();
@@ -110,6 +128,48 @@ void tokenize(char *p) {
     while (*p) {
         // Trim spaces
         if (isspace(*p)) {
+            p++;
+            continue;
+        }
+
+        if (strncmp(p, "==", 2) == 0) {
+            Token *tk = new_token(TK_EQ, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
+            p += 2;
+            continue;
+        }
+
+        if (strncmp(p, "!=", 2) == 0) {
+            Token *tk = new_token(TK_NE, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
+            p += 2;
+            continue;
+        }
+
+        if (strncmp(p, "<=", 2) == 0) {
+            Token *tk = new_token(TK_LE, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
+            p += 2;
+            continue;
+        }
+
+        if (strncmp(p, ">=", 2) == 0) {
+            Token *tk = new_token(TK_GE, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
+            p += 2;
+            continue;
+        }
+
+        if (*p == '<') {
+            Token *tk = new_token(TK_LT, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
+            p++;
+            continue;
+        }
+
+        if (*p == '>') {
+            Token *tk = new_token(TK_GT, 0, NULL, p);
+            vec_push(tokens, (void *)tk);
             p++;
             continue;
         }
@@ -214,11 +274,49 @@ Node *stmt() {
 }
 
 Node *assign() {
-    Node *lhs = expr();
+    Node *lhs = equality();
 
     if (current_token(pos)->type == '=') {
         pos++;
         return new_node('=', lhs, assign());
+    }
+
+    return lhs;
+}
+
+Node *equality() {
+    Node *lhs = relational();
+
+    if (current_token(pos)->type == TK_EQ) {
+        pos++;
+        return new_node(NODE_EQ, lhs, equality());
+    }
+    if (current_token(pos)->type == TK_NE) {
+        pos++;
+        return new_node(NODE_NE, lhs, equality());
+    }
+
+    return lhs;
+}
+
+Node *relational() {
+    Node *lhs = expr();
+
+    if (current_token(pos)->type == TK_LE) {
+        pos++;
+        return new_node(NODE_LE, lhs, relational());
+    }
+    if (current_token(pos)->type == TK_LT) {
+        pos++;
+        return new_node(NODE_LT, lhs, relational());
+    }
+    if (current_token(pos)->type == TK_GE) {
+        pos++;
+        return new_node(NODE_LE, relational(), lhs); // Reverse left and right hand sides
+    }
+    if (current_token(pos)->type == TK_GT) {
+        pos++;
+        return new_node(NODE_LT, relational(), lhs); // Reverse left and right hand sides
     }
 
     return lhs;
