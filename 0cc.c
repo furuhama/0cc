@@ -23,6 +23,7 @@ void runtest();
 int main(int argc, char **argv) {
     tokens = new_vector();
     nodes = new_vector();
+    vars = new_map();
 
     if (argc != 2) {
         fprintf(stderr, "Wrong number of arguments.\n");

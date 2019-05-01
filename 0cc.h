@@ -40,6 +40,7 @@ typedef struct {
 // Variables
 Vector *tokens;
 Vector *nodes;
+Map *vars;
 
 // Vector fucntions
 Vector *new_vector();

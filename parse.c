@@ -149,7 +149,7 @@ void tokenize(char *p) {
 
             Token *tk = new_token(TK_IDENT, 0, ident, p);
             vec_push(tokens, (void *)tk);
-            p++;
+            p += i;
             continue;
         }
 
@@ -272,6 +272,12 @@ Node *term() {
         return new_node_num(current_token(pos++)->value);
     }
     if (current_token(pos)->type == TK_IDENT) {
+        // Set ident to `vars` Map, if it does not exist in `vars` yet
+        if ((long)map_get(vars, current_token(pos)->name) == 0) {
+            long offset = (vars->keys->len + 1) * 8;
+            map_push(vars, current_token(pos)->name, (void *)offset);
+        }
+
         return new_node_ident(current_token(pos++)->name);
     }
     if (current_token(pos)->type == '(') {

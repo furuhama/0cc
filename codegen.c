@@ -34,9 +34,10 @@ void gen_lval(Node *node) {
         error("Left value of assinment is not variable", NULL);
     }
 
-    int offset = ('z' - *node->name + 1) * 8;
+    long offset = (long)map_get(vars, node->name);
+
     printf("    mov rax, rbp\n");
-    printf("    sub rax, %d\n", offset);
+    printf("    sub rax, %ld\n", offset);
     printf("    push rax\n");
 }
 
@@ -99,10 +100,10 @@ void generate(Node *node) {
 }
 
 void prologue() {
-    // Prologue: take places for 26 characters
+    int total_vars = vars->keys->len;
     printf("    push rbp\n");
     printf("    mov rbp, rsp\n");
-    printf("    sub rsp, 208\n");
+    printf("    sub rsp, %d\n", total_vars * 8);
 }
 
 void epilogue() {
