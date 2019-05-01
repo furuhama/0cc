@@ -1,3 +1,7 @@
+/*
+ * Assembly Code Generator
+ */
+
 #include "0cc.h"
 
 /* Assembly generator */

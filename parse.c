@@ -1,3 +1,42 @@
+/*
+ * Tokenizer & Parser
+ *
+ * 1. Tokenize Input
+ * 2. Generate vector of Tokens
+ * 3. Parse Tokens
+ * 4. Generate vector of Nodes
+ */
+
+/*
+ * Supported syntax:
+ *
+ * program: ε
+ * program: stmt program
+ *
+ * stmt: assign `;`
+ * stmt: `return` assign `;`
+ *
+ * assign: expr
+ * assign: expr `=` assign
+ *
+ * expr: mul
+ * expr: expr `+` mul
+ * expr: expr `-` mul
+ *
+ * mul: unary
+ * mul: mul `*` unary
+ * mul: mul `/` unary
+ *
+ * unary: term
+ * unary: `+` term
+ * unary: `-` term
+ *
+ * term: num
+ * term: ident
+ * term `(` assign `)`
+ *
+ */
+
 #include "0cc.h"
 
 // Token type
@@ -29,12 +68,22 @@ Token *new_token(int type, int value, char *name, char* input) {
 
 /* Utils */
 
+// Error notifier
+noreturn void error(char* message, char* input) {
+    fprintf(stderr, message, input);
+    exit(1);
+}
+
 // check the char can be a part of Identifier
 int is_alnum(char c) {
     return ('a' <= c && c <= 'z') ||
         ('A' <= c && c <= 'Z') ||
         ('0' <= c && c <= '9') ||
         ('0' == '_');
+}
+
+Token *current_token(int pos) {
+    return (Token *)tokens->data[pos];
 }
 
 /* Variables */
@@ -97,12 +146,6 @@ void tokenize(char *p) {
     vec_push(tokens, (void *)new_token(TK_EOF, 0, NULL, p));
 }
 
-// Error notifier
-noreturn void error(char* message, char* input) {
-    fprintf(stderr, message, input);
-    exit(1);
-}
-
 /* Node initializers */
 
 Node *new_node(int op, Node *lhs, Node *rhs) {
@@ -128,37 +171,6 @@ Node *new_node_ident(char *name) {
 }
 
 /* Token parser */
-
-/*
- * program: ε
- * program: stmt program
- *
- * stmt: assign `;`
- * stmt: `return` assign `;`
- *
- * assign: expr
- * assign: expr `=` assign
- *
- * expr: mul
- * expr: expr `+` mul
- * expr: expr `-` mul
- *
- * mul: unary
- * mul: mul `*` unary
- * mul: mul `/` unary
- *
- * unary: term
- * unary: `+` term
- * unary: `-` term
- *
- * term: num
- * term: ident
- * term `(` assign `)`
- */
-
-Token *current_token(int pos) {
-    return (Token *)tokens->data[pos];
-}
 
 void program() {
     while (current_token(pos)->type != TK_EOF) {

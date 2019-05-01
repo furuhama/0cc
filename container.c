@@ -1,3 +1,11 @@
+/*
+ * Utility data structures
+ *
+ * Supported structures:
+ * 1. Vector
+ * 2. Map
+ */
+
 #include "0cc.h"
 
 /* Vector functions */

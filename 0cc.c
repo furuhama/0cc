@@ -3,13 +3,13 @@
  *
  * Compile process:
  *
- * 1. Tokenize input string
+ * 1. Tokenize input string (parse.c)
  *    (Trim extra spaces, Set type & value for each tokens)
  *
- * 2. Create Abstract Syntax Tree (= AST)
+ * 2. Create Abstract Syntax Tree (= AST) (parse.c)
  *    (Create nodes by syntax rules)
  *
- * 3. Generate assembly codes by consuming AST
+ * 3. Generate assembly codes by consuming AST (codegen.c)
  *
  */
 
