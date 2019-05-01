@@ -75,6 +75,7 @@ try '(a = 2); a;' 2
 try '(a = 2); b = (a + 10 * 5); b;' 52
 try 'a = b = 2; a + b;' 4
 try 'a = b = 3 ; 1 + 1 + a + b  ;' 8
+try 'a = 1; a = a + 1; return a;' 2
 
 try 'return 1;' 1
 try '100; return 10; 50;' 10
@@ -99,5 +100,11 @@ try 'ifs = 10; if (5 != 5) ifs = 2; return ifs;' 10
 try 'if (0) return 1; return 5;' 5
 try 'a = 2; if (0) a = 5; return a;' 2
 try 'if (1) if (1) return 1;' 1
+
+try 'if (1) return 42 else return 30;' 42
+try 'if (0) return 30 else return 42;' 42
+try 'a = 1; if (a == 1) a = a + 1 else a = 10; return a;' 2
+try 'elses = 2; if (elses == 2) if (elses * 2 == 4) elses = elses + 2 else elses = 0 else elses = elses + 100; return elses;' 4
+try 'x = 1; if (x == 2) x = 100 else if (x == 3) x = 200 else x = 5; return x;' 5
 
 echo OK
