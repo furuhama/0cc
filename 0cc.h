@@ -6,28 +6,6 @@
 
 /* Structs & Enums */
 
-// Node type
-enum {
-    NODE_NUM = 256, // Integer node
-    NODE_IDENT, // Identifier node
-    NODE_RETURN, // `return` node
-    NODE_EQ,
-    NODE_NE,
-    NODE_LE,
-    NODE_LT,
-    NODE_IF, // `if` node (lhs has `if` condition assignment, rhs has NODE_IF_BODY node)
-    NODE_IF_BODY, // `if` body node (lhs has `if` statement, rhs has `else` statement)
-};
-
-// Node (of Abstract Syntax Tree)
-typedef struct Node {
-    int type; // Operator or NODE enum
-    struct Node *lhs;
-    struct Node *rhs;
-    int value; // value for NODE_NUM
-    char *name; // value for NODE_IDENT
-} Node;
-
 // Vector
 typedef struct {
     void **data;
@@ -40,6 +18,30 @@ typedef struct {
     Vector *keys;
     Vector *vals;
 } Map;
+
+// Node type
+enum {
+    NODE_NUM = 256, // Integer node
+    NODE_IDENT, // Identifier node
+    NODE_RETURN, // `return` node
+    NODE_EQ,
+    NODE_NE,
+    NODE_LE,
+    NODE_LT,
+    NODE_IF, // `if` node (lhs has `if` condition assignment, rhs has NODE_IF_BODY node)
+    NODE_IF_BODY, // `if` body node (lhs has `if` statement, rhs has `else` statement)
+    NODE_BLOCK, // `{` `}` block node
+};
+
+// Node (of Abstract Syntax Tree)
+typedef struct Node {
+    int type; // Operator or NODE enum
+    struct Node *lhs;
+    struct Node *rhs;
+    int value; // value for NODE_NUM
+    char *name; // value for NODE_IDENT
+    Vector *stmts; // Vector which has statements in block node
+} Node;
 
 /* Prototypes */
 

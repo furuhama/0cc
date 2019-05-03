@@ -14,6 +14,10 @@
  * program: sentence program
  *
  * sentence: stmt `;`
+ * sentence: `{` block_items `}`
+ *
+ * block_items: stmt `;`
+ * block_items: stmt `;` block_items
  *
  * stmt: assign
  * stmt: `if` `(` assign `)` stmt
@@ -117,6 +121,7 @@ int pos = 0;
 /* Prototypes */
 
 Node *sentence();
+Node *block_items();
 Node *stmt();
 Node *assign();
 Node *equality();
@@ -184,7 +189,7 @@ void tokenize(char *p) {
         }
 
         // Tokenize operators
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=' || *p == '{' || *p == '}') {
             Token *tk = new_token(*p, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p++;
@@ -293,12 +298,43 @@ void program() {
 }
 
 Node *sentence() {
-    Node *node = stmt();
+    Node *node;
 
-    if (current_token(pos)->type != ';') {
-        error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+    if (current_token(pos)->type == '{') {
+        // block is given
+        pos++;
+
+        node = block_items();
+    } else {
+        // normal statement is given
+        node = stmt();
+
+        if (current_token(pos)->type != ';') {
+            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+        }
+        pos++;
+    }
+
+    return node;
+}
+
+Node *block_items() {
+    Node *node = malloc(sizeof(Node));
+    Vector *items = new_vector();
+
+    while (current_token(pos)->type != '}') {
+        Node *item = stmt();
+        vec_push(items, (void *)item);
+
+        if (current_token(pos)->type != ';') {
+            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+        }
+        pos++;
     }
     pos++;
+
+    node->type = NODE_BLOCK;
+    node->stmts = items;
 
     return node;
 }

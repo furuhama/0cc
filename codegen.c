@@ -156,6 +156,16 @@ void generate(Node *node) {
         }
     }
 
+    if (node->type == NODE_BLOCK) {
+        for (int i = 0; i < node->stmts->len; i++) {
+            Node *item = (Node *)(node->stmts->data[i]);
+            generate(item);
+            printf("    pop rax\n");
+        }
+
+        return;
+    }
+
     generate(node->lhs);
     generate(node->rhs);
 
