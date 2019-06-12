@@ -5,7 +5,7 @@ try() {
   expected="$2"
 
   ./0cc "$input" > tmp.s
-  gcc-8 tmp.s -o tmp
+  gcc-9 tmp.s -o tmp
   ./tmp
   actual="$?"
 
