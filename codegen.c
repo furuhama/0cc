@@ -160,7 +160,6 @@ void generate(Node *node) {
         for (int i = 0; i < node->stmts->len; i++) {
             Node *item = (Node *)(node->stmts->data[i]);
             generate(item);
-            printf("    pop rax\n");
         }
 
         return;

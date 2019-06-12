@@ -10,19 +10,13 @@
 /*
  * Supported syntax:
  *
- * program: ε
- * program: sentence program
+ * program: stmt*
  *
- * sentence: stmt `;`
- * sentence: `{` block_items `}`
- *
- * block_items: stmt `;`
- * block_items: stmt `;` block_items
- *
- * stmt: assign
+ * stmt: assign `;`
+ * stmt: `{` stmt* `}`
+ * stmt: `return` assign `;`
  * stmt: `if` `(` assign `)` stmt
  * stmt: `if` `(` assign `)` stmt `else` stmt
- * stmt: `return` assign
  *
  * assign: equality
  * assign: equality `=` assign
@@ -120,8 +114,6 @@ int pos = 0;
 
 /* Prototypes */
 
-Node *sentence();
-Node *block_items();
 Node *stmt();
 Node *assign();
 Node *equality();
@@ -291,75 +283,54 @@ Node *new_node_if(Node *cond, Node *if_body, Node *else_body) {
 
 void program() {
     while (current_token(pos)->type != TK_EOF) {
-        vec_push(nodes, (void *)sentence());
+        vec_push(nodes, (void *)stmt());
     }
 
     vec_push(nodes, NULL);
 }
 
-Node *sentence() {
+Node *stmt() {
     Node *node;
 
     if (current_token(pos)->type == '{') {
         // block is given
         pos++;
 
-        node = block_items();
-    } else {
-        // normal statement is given
-        node = stmt();
+        node = malloc(sizeof(Node));
+        node->type = NODE_BLOCK;
+        Vector *items = new_vector();
 
-        if (current_token(pos)->type != ';') {
-            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+        while (current_token(pos)->type != '}') {
+            vec_push(items, (void *)stmt());
         }
+
+        node-> stmts = items;
+        // After getting out of while loop, next token is definitely '}'
+        // and we should just go to next pos
         pos++;
-    }
-
-    return node;
-}
-
-Node *block_items() {
-    Node *node = malloc(sizeof(Node));
-    Vector *items = new_vector();
-
-    while (current_token(pos)->type != '}') {
-        Node *item = stmt();
-        vec_push(items, (void *)item);
-
-        if (current_token(pos)->type != ';') {
-            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
-        }
-        pos++;
-    }
-    pos++;
-
-    node->type = NODE_BLOCK;
-    node->stmts = items;
-
-    return node;
-}
-
-Node *stmt() {
-    Node *node;
-
-    if (current_token(pos)->type == TK_RETURN) {
+    } else if (current_token(pos)->type == TK_RETURN) {
         pos++;
 
         node = malloc(sizeof(Node));
         node->type = NODE_RETURN;
         node->lhs = assign();
+
+        if (current_token(pos)->type != ';') {
+            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+        }
+        pos++;
     } else if (current_token(pos)->type == TK_IF) {
         pos++;
 
         if (current_token(pos)->type != '(') {
-            error("Unexpected token, expect '(', but given token is: %s\n", current_token(pos)->input);
+            error("Unexpected token, expect '(' but given token is: %s\n", current_token(pos)->input);
         }
         pos++;
 
         Node *cond = assign();
 
         if (current_token(pos)->type != ')') {
-            error("Unexpected token, expect ')', but given token is: %s\n", current_token(pos)->input);
+            error("Unexpected token, expect ')' but given token is: %s\n", current_token(pos)->input);
         }
         pos++;
 
@@ -369,12 +340,19 @@ Node *stmt() {
         // Read ahead current position to set else body
         if (tokens->len >= pos && current_token(pos)->type == TK_ELSE) {
             pos++;
+
             else_body = stmt();
         }
 
         node = new_node_if(cond, if_body, else_body);
     } else {
+        // normal statement is given
         node = assign();
+
+        if (current_token(pos)->type != ';') {
+            error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
+        }
+        pos++;
     }
 
     return node;

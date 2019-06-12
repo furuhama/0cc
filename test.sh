@@ -101,11 +101,11 @@ try 'if (0) return 1; return 5;' 5
 try 'a = 2; if (0) a = 5; return a;' 2
 try 'if (1) if (1) return 1;' 1
 
-try 'if (1) return 42 else return 30;' 42
-try 'if (0) return 30 else return 42;' 42
-try 'a = 1; if (a == 1) a = a + 1 else a = 10; return a;' 2
-try 'elses = 2; if (elses == 2) if (elses * 2 == 4) elses = elses + 2 else elses = 0 else elses = elses + 100; return elses;' 4
-try 'x = 1; if (x == 2) x = 100 else if (x == 3) x = 200 else x = 5; return x;' 5
+try 'if (1) return 42; else return 30;' 42
+try 'if (0) return 30; else return 42;' 42
+try 'a = 1; if (a == 1) a = a + 1; else a = 10; return a;' 2
+try 'elses = 2; if (elses == 2) if (elses * 2 == 4) elses = elses + 2; else elses = 0; else elses = elses + 100; return elses;' 4
+try 'x = 1; if (x == 2) x = 100; else if (x == 3) x = 200; else x = 5; return x;' 5
 
 try '{ return 0; }' 0
 try '{a = 1; return a;}' 1
