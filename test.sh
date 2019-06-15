@@ -108,7 +108,8 @@ try 'elses = 2; if (elses == 2) if (elses * 2 == 4) elses = elses + 2; else else
 try 'x = 1; if (x == 2) x = 100; else if (x == 3) x = 200; else x = 5; return x;' 5
 
 try '{ return 0; }' 0
-try '{a = 1; return a;}' 1
-# try 'a = 1; { a = a + 1; } return a;' 2 # Can't generate right code
+try '{ a = 1; return a; }' 1
+try 'a = 1; { a = a + 1; } return a;' 2
+try 'x = 1; if (x == 3) { x = x + 1; } else if (x == 4) { x = x + 2; } else { x = x + 3; } return x;' 4
 
 echo OK
