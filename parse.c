@@ -54,31 +54,34 @@
 /* Token */
 
 // Token type
-enum {
+enum
+{
     TK_NUM = 256, // Integer token
-    TK_IDENT, // Identifier token
-    TK_RETURN, // Keyword `return` token
-    TK_EOF, // End of File token
-    TK_EQ, // Equal
-    TK_NE, // Not Equal
-    TK_LT, // Less Than
-    TK_LE, // Less than or Equal to
-    TK_GT, // Greater Than
-    TK_GE, // Greater than or Equal to
-    TK_IF, // Keyword `if` token
-    TK_ELSE, // Keyword `else` token
+    TK_IDENT,     // Identifier token
+    TK_RETURN,    // Keyword `return` token
+    TK_EOF,       // End of File token
+    TK_EQ,        // Equal
+    TK_NE,        // Not Equal
+    TK_LT,        // Less Than
+    TK_LE,        // Less than or Equal to
+    TK_GT,        // Greater Than
+    TK_GE,        // Greater than or Equal to
+    TK_IF,        // Keyword `if` token
+    TK_ELSE,      // Keyword `else` token
 };
 
 // Token
-typedef struct {
-    int type; // type of token
-    int value; // value of TK_NUM type token
-    char *name; // value of TK_IDENT type token
+typedef struct
+{
+    int type;    // type of token
+    int value;   // value of TK_NUM type token
+    char *name;  // value of TK_IDENT type token
     char *input; // string of token to display error messages
 } Token;
 
 // Token initializer
-Token *new_token(int type, int value, char *name, char* input) {
+Token *new_token(int type, int value, char *name, char *input)
+{
     Token *token = malloc(sizeof(Token));
     token->type = type;
     token->value = value;
@@ -90,21 +93,24 @@ Token *new_token(int type, int value, char *name, char* input) {
 /* Utils */
 
 // Error notifier
-noreturn void error(char* message, char* input) {
+noreturn void error(char *message, char *input)
+{
     fprintf(stderr, message, input);
     exit(1);
 }
 
 // check the char can be a part of Identifier
-int is_alnum(char c) {
-    return ('a' <= c && c <= 'z') ||
-        ('A' <= c && c <= 'Z') ||
-        ('0' <= c && c <= '9') ||
-        ('0' == '_');
+int is_alnum(char c)
+{
+    return ('a' <= c && c <= 'z') |
+           ('A' <= c && c <= 'Z') |
+           ('0' <= c && c <= '9') |
+           ('0' == '_');
 }
 
 // get current token by position
-Token *current_token(int pos) {
+Token *current_token(int pos)
+{
     return (Token *)tokens->data[pos];
 }
 
@@ -122,58 +128,67 @@ Node *expr();
 Node *mul();
 Node *unary();
 Node *term();
-Node *new_node(int, Node*, Node*);
+Node *new_node(int, Node *, Node *);
 Node *new_node_num(int);
-Node *new_node_ident(char*);
+Node *new_node_ident(char *);
 Node *new_node_if(Node *, Node *, Node *);
 void dump_tokens();
 
 /* Tokenizer (Raw source code parser) */
 
-void tokenize(char *p) {
-    while (*p) {
+void tokenize(char *p)
+{
+    while (*p)
+    {
         // Trim spaces
-        if (isspace(*p)) {
+        if (isspace(*p))
+        {
             p++;
             continue;
         }
 
-        if (strncmp(p, "==", 2) == 0) {
+        if (strncmp(p, "==", 2) == 0)
+        {
             Token *tk = new_token(TK_EQ, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p += 2;
             continue;
         }
 
-        if (strncmp(p, "!=", 2) == 0) {
+        if (strncmp(p, "!=", 2) == 0)
+        {
             Token *tk = new_token(TK_NE, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p += 2;
             continue;
         }
 
-        if (strncmp(p, "<=", 2) == 0) {
+        if (strncmp(p, "<=", 2) == 0)
+        {
             Token *tk = new_token(TK_LE, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p += 2;
             continue;
         }
 
-        if (strncmp(p, ">=", 2) == 0) {
+        if (strncmp(p, ">=", 2) == 0)
+        {
             Token *tk = new_token(TK_GE, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p += 2;
             continue;
         }
 
-        if (*p == '<') {
+        if (*p == '<')
+        {
             Token *tk = new_token(TK_LT, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p++;
             continue;
         }
 
-        if (*p == '>') {
+        if (*p == '>')
+        {
             Token *tk = new_token(TK_GT, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p++;
@@ -181,7 +196,8 @@ void tokenize(char *p) {
         }
 
         // Tokenize operators
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=' || *p == '{' || *p == '}') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=' || *p == '{' || *p == '}')
+        {
             Token *tk = new_token(*p, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p++;
@@ -189,7 +205,8 @@ void tokenize(char *p) {
         }
 
         // Tokenize digits
-        if (isdigit(*p)) {
+        if (isdigit(*p))
+        {
             char *input = p;
             Token *tk = new_token(TK_NUM, strtol(p, &p, 10), NULL, input);
             vec_push(tokens, (void *)tk);
@@ -197,7 +214,8 @@ void tokenize(char *p) {
         }
 
         // `return`
-        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+        if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6]))
+        {
             Token *tk = new_token(TK_RETURN, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p += 6;
@@ -205,7 +223,8 @@ void tokenize(char *p) {
         }
 
         // `if`
-        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
+        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2]))
+        {
             Token *tk = new_token(TK_IF, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p += 2;
@@ -213,7 +232,8 @@ void tokenize(char *p) {
         }
 
         // `else`
-        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
+        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4]))
+        {
             Token *tk = new_token(TK_ELSE, 0, NULL, p);
             vec_push(tokens, (void *)tk);
             p += 4;
@@ -221,10 +241,12 @@ void tokenize(char *p) {
         }
 
         // Tokenize Identifiers
-        if ('a' <= *p && *p <= 'z') {
+        if ('a' <= *p && *p <= 'z')
+        {
             int i = 0;
             char *pp = p;
-            while (is_alnum(*pp)) {
+            while (is_alnum(*pp))
+            {
                 i++;
                 pp++;
             }
@@ -244,7 +266,8 @@ void tokenize(char *p) {
 
 /* Node initializers */
 
-Node *new_node(int op, Node *lhs, Node *rhs) {
+Node *new_node(int op, Node *lhs, Node *rhs)
+{
     Node *node = malloc(sizeof(Node));
     node->type = op;
     node->lhs = lhs;
@@ -252,21 +275,24 @@ Node *new_node(int op, Node *lhs, Node *rhs) {
     return node;
 }
 
-Node *new_node_num(int value) {
+Node *new_node_num(int value)
+{
     Node *node = malloc(sizeof(Node));
     node->type = NODE_NUM;
     node->value = value;
     return node;
 }
 
-Node *new_node_ident(char *name) {
+Node *new_node_ident(char *name)
+{
     Node *node = malloc(sizeof(Node));
     node->type = NODE_IDENT;
     node->name = name;
     return node;
 }
 
-Node *new_node_if(Node *cond, Node *if_body, Node *else_body) {
+Node *new_node_if(Node *cond, Node *if_body, Node *else_body)
+{
     Node *node = malloc(sizeof(Node));
     node->type = NODE_IF;
     node->lhs = cond;
@@ -281,18 +307,22 @@ Node *new_node_if(Node *cond, Node *if_body, Node *else_body) {
 
 /* Token parser */
 
-void program() {
-    while (current_token(pos)->type != TK_EOF) {
+void program()
+{
+    while (current_token(pos)->type != TK_EOF)
+    {
         vec_push(nodes, (void *)stmt());
     }
 
     vec_push(nodes, NULL);
 }
 
-Node *stmt() {
+Node *stmt()
+{
     Node *node;
 
-    if (current_token(pos)->type == '{') {
+    if (current_token(pos)->type == '{')
+    {
         // block is given
         pos++;
 
@@ -300,36 +330,44 @@ Node *stmt() {
         node->type = NODE_BLOCK;
         Vector *items = new_vector();
 
-        while (current_token(pos)->type != '}') {
+        while (current_token(pos)->type != '}')
+        {
             vec_push(items, (void *)stmt());
         }
 
-        node-> stmts = items;
+        node->stmts = items;
         // After getting out of while loop, next token is definitely '}'
         // and we should just go to next pos
         pos++;
-    } else if (current_token(pos)->type == TK_RETURN) {
+    }
+    else if (current_token(pos)->type == TK_RETURN)
+    {
         pos++;
 
         node = malloc(sizeof(Node));
         node->type = NODE_RETURN;
         node->lhs = assign();
 
-        if (current_token(pos)->type != ';') {
+        if (current_token(pos)->type != ';')
+        {
             error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
         }
         pos++;
-    } else if (current_token(pos)->type == TK_IF) {
+    }
+    else if (current_token(pos)->type == TK_IF)
+    {
         pos++;
 
-        if (current_token(pos)->type != '(') {
+        if (current_token(pos)->type != '(')
+        {
             error("Unexpected token, expect '(' but given token is: %s\n", current_token(pos)->input);
         }
         pos++;
 
         Node *cond = assign();
 
-        if (current_token(pos)->type != ')') {
+        if (current_token(pos)->type != ')')
+        {
             error("Unexpected token, expect ')' but given token is: %s\n", current_token(pos)->input);
         }
         pos++;
@@ -338,18 +376,22 @@ Node *stmt() {
         Node *else_body = NULL;
 
         // Read ahead current position to set else body
-        if (tokens->len >= pos && current_token(pos)->type == TK_ELSE) {
+        if (tokens->len >= pos && current_token(pos)->type == TK_ELSE)
+        {
             pos++;
 
             else_body = stmt();
         }
 
         node = new_node_if(cond, if_body, else_body);
-    } else {
+    }
+    else
+    {
         // normal statement is given
         node = assign();
 
-        if (current_token(pos)->type != ';') {
+        if (current_token(pos)->type != ';')
+        {
             error("Unexpected token, expect ';' but given token is: %s\n", current_token(pos)->input);
         }
         pos++;
@@ -358,10 +400,12 @@ Node *stmt() {
     return node;
 }
 
-Node *assign() {
+Node *assign()
+{
     Node *lhs = equality();
 
-    if (current_token(pos)->type == '=') {
+    if (current_token(pos)->type == '=')
+    {
         pos++;
         return new_node('=', lhs, assign());
     }
@@ -369,14 +413,17 @@ Node *assign() {
     return lhs;
 }
 
-Node *equality() {
+Node *equality()
+{
     Node *lhs = relational();
 
-    if (current_token(pos)->type == TK_EQ) {
+    if (current_token(pos)->type == TK_EQ)
+    {
         pos++;
         return new_node(NODE_EQ, lhs, equality());
     }
-    if (current_token(pos)->type == TK_NE) {
+    if (current_token(pos)->type == TK_NE)
+    {
         pos++;
         return new_node(NODE_NE, lhs, equality());
     }
@@ -384,22 +431,27 @@ Node *equality() {
     return lhs;
 }
 
-Node *relational() {
+Node *relational()
+{
     Node *lhs = expr();
 
-    if (current_token(pos)->type == TK_LE) {
+    if (current_token(pos)->type == TK_LE)
+    {
         pos++;
         return new_node(NODE_LE, lhs, relational());
     }
-    if (current_token(pos)->type == TK_LT) {
+    if (current_token(pos)->type == TK_LT)
+    {
         pos++;
         return new_node(NODE_LT, lhs, relational());
     }
-    if (current_token(pos)->type == TK_GE) {
+    if (current_token(pos)->type == TK_GE)
+    {
         pos++;
         return new_node(NODE_LE, relational(), lhs); // Reverse left and right hand sides
     }
-    if (current_token(pos)->type == TK_GT) {
+    if (current_token(pos)->type == TK_GT)
+    {
         pos++;
         return new_node(NODE_LT, relational(), lhs); // Reverse left and right hand sides
     }
@@ -407,14 +459,17 @@ Node *relational() {
     return lhs;
 }
 
-Node *expr() {
+Node *expr()
+{
     Node *lhs = mul();
 
-    if (current_token(pos)->type == '+') {
+    if (current_token(pos)->type == '+')
+    {
         pos++;
         return new_node('+', lhs, expr());
     }
-    if (current_token(pos)->type == '-') {
+    if (current_token(pos)->type == '-')
+    {
         pos++;
         return new_node('-', lhs, expr());
     }
@@ -422,14 +477,17 @@ Node *expr() {
     return lhs;
 }
 
-Node *mul() {
+Node *mul()
+{
     Node *lhs = unary();
 
-    if (current_token(pos)->type == '*') {
+    if (current_token(pos)->type == '*')
+    {
         pos++;
         return new_node('*', lhs, mul());
     }
-    if (current_token(pos)->type == '/') {
+    if (current_token(pos)->type == '/')
+    {
         pos++;
         return new_node('/', lhs, mul());
     }
@@ -437,12 +495,15 @@ Node *mul() {
     return lhs;
 }
 
-Node *unary() {
-    if (current_token(pos)->type == '+') {
+Node *unary()
+{
+    if (current_token(pos)->type == '+')
+    {
         pos++;
         return term();
     }
-    if (current_token(pos)->type == '-') {
+    if (current_token(pos)->type == '-')
+    {
         pos++;
         return new_node('-', new_node_num(0), term());
     }
@@ -450,24 +511,30 @@ Node *unary() {
     return term();
 }
 
-Node *term() {
-    if (current_token(pos)->type == TK_NUM) {
+Node *term()
+{
+    if (current_token(pos)->type == TK_NUM)
+    {
         return new_node_num(current_token(pos++)->value);
     }
-    if (current_token(pos)->type == TK_IDENT) {
+    if (current_token(pos)->type == TK_IDENT)
+    {
         // Set ident to `vars` Map, if it does not exist in `vars` yet
-        if ((long)map_get(vars, current_token(pos)->name) == 0) {
+        if ((long)map_get(vars, current_token(pos)->name) == 0)
+        {
             long offset = (vars->keys->len + 1) * 8;
             map_push(vars, current_token(pos)->name, (void *)offset);
         }
 
         return new_node_ident(current_token(pos++)->name);
     }
-    if (current_token(pos)->type == '(') {
+    if (current_token(pos)->type == '(')
+    {
         pos++;
         Node *node = assign();
 
-        if (current_token(pos)->type != ')') {
+        if (current_token(pos)->type != ')')
+        {
             error("Unexpected token, expect ')' but given token is: %s\n", current_token(pos)->input);
         }
 
@@ -478,8 +545,10 @@ Node *term() {
 }
 
 // Debug
-void dump_tokens() {
-    for (int i = 0; i < tokens->len; i++) {
+void dump_tokens()
+{
+    for (int i = 0; i < tokens->len; i++)
+    {
         Token *cur = (Token *)tokens->data[i];
         printf("# type: %d, value: %d, name: %s, input: %s\n", cur->type, cur->value, cur->name, cur->input);
     }
