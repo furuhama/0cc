@@ -3,7 +3,7 @@ SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 
 0cc: $(OBJS)
-		gcc-14 -o 0cc $(OBJS) $(LDFLAGS)
+		gcc-15 -o 0cc $(OBJS) $(LDFLAGS)
 
 $(OBJS): 0cc.h
 
