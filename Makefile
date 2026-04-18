@@ -1,9 +1,9 @@
-CFLAGS=-Wall -std=c11
+CFLAGS=-Wall -std=c2x
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 
 0cc: $(OBJS)
-		gcc-9 -o 0cc $(OBJS) $(LDFLAGS)
+		gcc-14 -o 0cc $(OBJS) $(LDFLAGS)
 
 $(OBJS): 0cc.h
 
