@@ -15,6 +15,11 @@
 
 #include "0cc.h"
 
+Vector *tokens;
+Vector *nodes;
+Map *vars;
+int condition_count;
+
 void expect(int, int, int);
 void runtest();
 

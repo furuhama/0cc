@@ -204,6 +204,13 @@ void epilogue() {
 
 void prefix() {
     printf(".intel_syntax noprefix\n");
+#ifdef __APPLE__
     printf(".global _main\n");
     printf("_main:\n");
+#else
+    printf(".section .note.GNU-stack,\"\",@progbits\n");
+    printf(".text\n");
+    printf(".global main\n");
+    printf("main:\n");
+#endif
 }

@@ -46,10 +46,10 @@ typedef struct Node {
 /* Prototypes */
 
 // Variables
-Vector *tokens;
-Vector *nodes;
-Map *vars;
-int condition_count;
+extern Vector *tokens;
+extern Vector *nodes;
+extern Map *vars;
+extern int condition_count;
 
 // Vector fucntions
 Vector *new_vector();
